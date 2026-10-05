@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-import json
 
 app = FastAPI()
 
@@ -10,9 +9,9 @@ launches = {
 }
 
 @app.get("/health")
-def get_health():
+def get_health() -> dict[str, str]:
 	return {"status": "UP"}
 
 @app.get("/launches")
-def get_launches():
+def get_launches() -> dict:
 	return launches
