@@ -11,6 +11,23 @@ load_dotenv()
 
 DB_CONNECTION = os.getenv("DATABASE_URL")
 
+from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel
+
+Status = Literal["upcoming", "launched", "scrubbed", "failed"]
+
+class launch_create(BaseModel):
+	rocket: str
+	provider: str
+	launch_time: datetime
+	status: Status = "upcoming"
+	is_crewed: bool
+	webcast_url: str
+
+
+
 @app.get("/health")
 def get_health() -> dict[str, str]:
 	return {"status": "UP"}
@@ -37,3 +54,22 @@ def get_launches_by_id(launch_id: int) -> dict:
 
 	if len(row) > 0: return row[0]
 	else: return {"status": "FAILED"}
+
+@app.post("/launches/create")
+def create_launch(payload: launch_create):
+
+	with psycopg.connect(DB_CONNECTION, row_factory = dict_row) as conn:
+		conn.execute(
+			"INSERT INTO launches (rocket, provider, launch_time, status, is_crewed, webcast_url) VALUES (%(rocket)s, %(provider)s, %(launch_time)s, %(status)s, %(is_crewed)s, %(webcast_url)s)",
+			{
+				"rocket":  payload.rocket,
+				"provider": payload.provider,
+				"launch_time": payload.launch_time,
+				"status": payload.status,
+				"is_crewed": payload.is_crewed,
+				"webcast_url": payload.webcast_url
+			}
+		)
+
+
+	return payload
