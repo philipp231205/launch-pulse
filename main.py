@@ -26,3 +26,14 @@ def get_launches() -> dict:
 	result = {row["id"]: row for row in rows}
 
 	return result
+
+@app.get("/launches/{launch_id}")
+def get_launches_by_id(launch_id: int) -> dict:
+
+	with psycopg.connect(DB_CONNECTION, row_factory = dict_row) as conn:
+		row = conn.execute(
+			"SELECT * FROM launches WHERE id = %s", (launch_id,)
+		).fetchall()
+
+	if len(row) > 0: return row[0]
+	else: return {"status": "FAILED"}
